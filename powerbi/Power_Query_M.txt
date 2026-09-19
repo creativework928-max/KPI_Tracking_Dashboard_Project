@@ -1,0 +1,24 @@
+// Power Query starter for fact_sales
+let
+    Source = Csv.Document(
+        File.Contents("C:\KPI_Tracking_Dashboard_Project\data\processed\fact_sales.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Types = Table.TransformColumnTypes(
+        Promoted,
+        {
+            {"InvoiceNo", type text},
+            {"StockCode", type text},
+            {"Description", type text},
+            {"Quantity", Int64.Type},
+            {"UnitPrice", type number},
+            {"InvoiceDate", type datetime},
+            {"InvoiceDateDate", type date},
+            {"CustomerID", type number},
+            {"Country", type text},
+            {"Revenue", type number}
+        }
+    )
+in
+    Types

@@ -1,0 +1,79 @@
+-- KPI Tracking & Dashboard — Power BI DAX
+-- Model: fact_sales related to dim_date on Date.
+
+Gross Revenue =
+SUM ( fact_sales[Revenue] )
+
+Orders =
+DISTINCTCOUNT ( fact_sales[InvoiceNo] )
+
+Units Sold =
+SUM ( fact_sales[Quantity] )
+
+Active Customers =
+DISTINCTCOUNT ( fact_sales[CustomerID] )
+
+Average Order Value =
+DIVIDE ( [Gross Revenue], [Orders] )
+
+Revenue per Customer =
+DIVIDE ( [Gross Revenue], [Active Customers] )
+
+Items per Order =
+DIVIDE ( [Units Sold], [Orders] )
+
+Previous Month Revenue =
+CALCULATE (
+    [Gross Revenue],
+    DATEADD ( dim_date[Date], -1, MONTH )
+)
+
+Monthly Growth % =
+DIVIDE (
+    [Gross Revenue] - [Previous Month Revenue],
+    [Previous Month Revenue]
+)
+
+Revenue YTD =
+TOTALYTD ( [Gross Revenue], dim_date[Date] )
+
+Orders YTD =
+TOTALYTD ( [Orders], dim_date[Date] )
+
+Repeat Customers =
+COUNTROWS (
+    FILTER (
+        VALUES ( fact_sales[CustomerID] ),
+        CALCULATE ( DISTINCTCOUNT ( fact_sales[InvoiceNo] ) ) > 1
+    )
+)
+
+Repeat Customer Rate % =
+DIVIDE ( [Repeat Customers], [Active Customers] )
+
+Return Amount =
+-- If a dedicated return fact is added:
+CALCULATE (
+    SUM ( fact_returns[ReturnAmount] )
+)
+
+Net Revenue =
+[Gross Revenue] - [Return Amount]
+
+Return Rate % =
+DIVIDE ( [Return Amount], [Gross Revenue] )
+
+Revenue Rank Product =
+RANKX (
+    ALL ( dim_product[Description] ),
+    [Gross Revenue],
+    ,
+    DESC,
+    DENSE
+)
+
+-- Recommended visual pages:
+-- 1. Executive Overview: KPI cards, revenue trend, growth, top products, country.
+-- 2. Customer Engagement: active customers, repeat rate, revenue/customer, orders/customer.
+-- 3. Product Performance: top products, revenue contribution, units.
+-- 4. Data Quality: missing CustomerID, returns, duplicates, invalid prices.
